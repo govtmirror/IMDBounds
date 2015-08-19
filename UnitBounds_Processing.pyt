@@ -157,7 +157,8 @@ class UpdateUnitBounds(object):
             'UNIT_CODE = \'WAPA\'',
             'UNIT_CODE = \'NPSA\'',
             'UNIT_CODE = \'LAKE\'',
-            'UNIT_CODE = \'ALKA\''
+            'UNIT_CODE = \'ALKA\'',
+            'UNIT_CODE = \'BICA\''
         ]
 
         # Dissolve nps_boundary.shp to remove lingering single-part features
