@@ -183,27 +183,6 @@ class UpdateUnitBounds(object):
         UpdateUnitBounds.calcField(self, tempLayer, "Feature_Source",  'GIS_Notes LIKE \'Lands%\' OR GIS_Notes LIKE \'LEGACY%\'', '"NPS Inventory and Monitoring Division - Central Office"', 1)
         arcpy.CalculateField_management(tempLayer, "Source_Details", '!GIS_Notes!', 'PYTHON_9.3'); messages.addGPMessages()
 
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"NEW_SELECTION", 'GIS_Notes LIKE \'LEGACY%\''); messages.addGPMessages()
-##        expression = '"Legacy Sources"'
-##        arcpy.CalculateField_management(tempLayer, "Feature_Source", expression, "PYTHON"); messages.addGPMessages()
-##        #arcpy.CalculateField_management(tempLayer, "Source_Metadata", "URL to SOP", 'PYTHON_9.3'); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"CLEAR_SELECTION"); messages.addGPMessages()
-##
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"NEW_SELECTION", 'GIS_Notes LIKE \'Lands%\''); messages.addGPMessages()
-##        expression = '"NPS Land Resources Division"'
-##        arcpy.CalculateField_management(tempLayer, "Feature_Source", expression, "PYTHON"); messages.addGPMessages()
-##        expression = '"https://irma.nps.gov/App/Reference/Profile/2194483?lnv=true"'
-##        arcpy.CalculateField_management(tempLayer, "Source_Metadata", expression, "PYTHON"); messages.addGPMessages()
-##        #arcpy.CalculateField_management(tempLayer, 'Source_Metadata', "!GIS_Notes![8:]", "VB"); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"CLEAR_SELECTION"); messages.addGPMessages()
-##
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"NEW_SELECTION", 'GIS_Notes LIKE \'Lands%\' OR GIS_Notes LIKE \'LEGACY%\''); messages.addGPMessages()
-##        expression = '"NPS Inventory and Monitoring Division - Central Office"'
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"SWITCH_SELECTION"); messages.addGPMessages()
-##        arcpy.CalculateField_management(tempLayer, "Feature_Source", expression, "PYTHON"); messages.addGPMessages()
-##        #arcpy.CalculateField_management(tempLayer, "Source_Metadata", "URL to SOP", "VB"); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(tempLayer,"CLEAR_SELECTION"); messages.addGPMessages()
-
         # Prepare feature layers for alternate bounds and affiliated areas
         arcpy.MakeFeatureLayer_management(altFeatureClass, altLayer); messages.addGPMessages()
         arcpy.MakeFeatureLayer_management(affFeatureClass, affLayer); messages.addGPMessages()
@@ -222,17 +201,6 @@ class UpdateUnitBounds(object):
         arcpy.MakeFeatureLayer_management(tempMergedFeatureClass, mergeLayer); messages.addGPMessages()
         UpdateUnitBounds.calcField(self, mergeLayer, "Feature_Source", 'Source_Details LIKE \'Good%\'', '"Legacy Sources"')
         UpdateUnitBounds.calcField(self, mergeLayer, "Feature_Source", 'Feature_Source IS Null', '"NPS Inventory and Monitoring Division - Central Office"')
-
-##        arcpy.MakeFeatureLayer_management(tempMergedFeatureClass, mergeLayer); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(mergeLayer,"NEW_SELECTION", 'GIS_Notes LIKE \'Good%\''); messages.addGPMessages()
-##        expression = '"Legacy Sources"'
-##        arcpy.CalculateField_management(mergeLayer, "Feature_Source", expression, "PYTHON"); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(mergeLayer,"CLEAR_SELECTION"); messages.addGPMessages()
-##
-##        arcpy.SelectLayerByAttribute_management(mergeLayer,"NEW_SELECTION", 'Feature_Source IS Null'); messages.addGPMessages()
-##        expression = '"NPS Inventory and Monitoring Division - Central Office"'
-##        arcpy.CalculateField_management(mergeLayer, "Feature_Source", expression, "PYTHON"); messages.addGPMessages()
-##        arcpy.SelectLayerByAttribute_management(mergeLayer,"CLEAR_SELECTION"); messages.addGPMessages()
 
         # Delete older versions
         workspace = parameters[1].valueAsText
