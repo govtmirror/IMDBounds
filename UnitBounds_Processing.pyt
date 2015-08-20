@@ -150,15 +150,15 @@ class UpdateUnitBounds(object):
         outSR = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]'
 
         unitsToDelete = [
-            'UNIT_CODE = \'AMME\'',
-            'UNIT_CODE = \'HAVO\'',
-            'UNIT_CODE = \'VALR\'',
-            'UNIT_CODE = \'KLGO\'',
-            'UNIT_CODE = \'WAPA\'',
-            'UNIT_CODE = \'NPSA\'',
-            'UNIT_CODE = \'LAKE\'',
             'UNIT_CODE = \'ALKA\'',
-            'UNIT_CODE = \'BICA\''
+            'UNIT_CODE = \'AMME\'',
+            'UNIT_CODE = \'BICA\'',
+            'UNIT_CODE = \'HAVO\'',
+            'UNIT_CODE = \'KLGO\'',
+            'UNIT_CODE = \'LAKE\'',
+            'UNIT_CODE = \'NPSA\'',
+            'UNIT_CODE = \'VALR\'',
+            'UNIT_CODE = \'WAPA\''
         ]
 
         # Dissolve nps_boundary.shp to remove lingering single-part features
