@@ -5,7 +5,7 @@
 #   Cross-check IMD parks with Lands nps_boundary.shp
 #   and create
 #   UnitBounds_Processing.gdb/tbl_MissingFromLands
-#   feature class.
+#   or tbl_IMDParksUpdated tables.
 #   Create
 #
 #
@@ -17,7 +17,8 @@
 #       Output Folder/Workspace
 #
 #   Outputs:
-#       One file geodatabases table: tbl_MissingFromLands in
+#       One of two file geodatabases tables: tbl_MissingFromLands or
+#       tbl_IMDParksUpdated in
 #       UnitBounds.gdb
 #
 #   Created by:  NPS Inventory and Monitoring Division GIS Staff

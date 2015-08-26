@@ -15,11 +15,12 @@
 #       Output Folder/Workspace
 #
 #   Outputs:
-#       One file geodatabases feature class: unit_bounds_gdb in
+#       Two file geodatabases feature classes: unit_bounds_wgs and
+#       nps_boundary (copy of nps_boundary.shp) in
 #       UnitBounds.gdb
 #
 #   Created by:  NPS Inventory and Monitoring Division GIS Staff
-#   Update date: 20150817
+#   Update date: 20150820
 #
 #
 #
@@ -55,7 +56,7 @@ class UpdateUnitBounds(object):
             datatype = "GPFeatureLayer",
             parameterType = "Required",
             direction = "Input")
-        param0.value = "X:\ProjectData\Data_Processing\NPS_Bounds\NPS_Boundary_Source\nps_boundary\nps_boundary.shp"
+        param0.value = r"X:\ProjectData\Data_Processing\NPS_Bounds\NPS_Boundary_Source\nps_boundary\nps_boundary.shp"
 
         param1 = arcpy.Parameter(
             displayName = "Output GeoDatabase",
@@ -132,6 +133,9 @@ class UpdateUnitBounds(object):
         datestamp = str(today.isoformat()).replace('-','')[0:8]
 
         arcpy.env.overwriteOutput = 1
+        # Lands bounds have M and Z values for some reason
+        arcpy.env.outputMFlag = "Disabled"
+        arcpy.env.outputZFlag = "Disabled"
         outputLandsFeatureClassName = "nps_boundary"
         outputGDBFeatureClassName = "unit_bounds_wgs"
         tempDissolveFeatureClassName = "lands_dissolve"
@@ -216,7 +220,6 @@ class UpdateUnitBounds(object):
         arcpy.Project_management(tempMergedFeatureClass, outputGDBFeatureClass, outSR); messages.addGPMessages()
         arcpy.RepairGeometry_management(outputGDBFeatureClass); messages.addGPMessages()
 
-        #arcpy.Rename_management(tempMergedFeatureClass, outputGDBFeatureClass); messages.addGPMessages()
         #arcpy.MetadataImporter_conversion(metadataTemplate ,outputGDBFeatureClass); messages.addGPMessages()
 
         itemsToDelete = [tempLayer, mergeLayer, altLayer, affLayer, tempDissolveFeatureClass, tempMergedFeatureClass]
