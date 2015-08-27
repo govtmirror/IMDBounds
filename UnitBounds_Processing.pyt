@@ -72,7 +72,7 @@ class UpdateUnitBounds(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param2.value = "D:\Workspace\UnitBound_Processing.gdb\AlternateBounds"
+        param2.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\UnitBound_Processing.gdb\AlternateBounds" #"D:\Workspace\UnitBound_Processing.gdb\AlternateBounds"
 
         param3 = arcpy.Parameter(
             displayName = "Affiliated Areas feature class",
@@ -81,9 +81,18 @@ class UpdateUnitBounds(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param3.value = "D:\Workspace\UnitBound_Processing.gdb\AffiliatedAreas"
+        param3.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\UnitBound_Processing.gdb\AffiliatedAreas" #"D:\Workspace\UnitBound_Processing.gdb\AffiliatedAreas"
 
-        params = [param0, param1, param2, param3]
+        param4 = arcpy.Parameter(
+            displayName = "Folder Containing Metadata Templates",
+            name = "metaFolder",
+            datatype = "Folder",
+            parameterType = "Required",
+            direction = "Input"
+            )
+        param4.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Metadata_Templates"
+
+        params = [param0, param1, param2, param3, param4]
         return params
 
     def isLicensed(self):
@@ -131,6 +140,7 @@ class UpdateUnitBounds(object):
         message = ""
         today=datetime.now()
         datestamp = str(today.isoformat()).replace('-','')[0:8]
+        metadataTemplate = "unitbounds_template.xml"
 
         arcpy.env.overwriteOutput = 1
         # Lands bounds have M and Z values for some reason
@@ -148,7 +158,6 @@ class UpdateUnitBounds(object):
         outputGDBFeatureClass = os.path.join(parameters[1].valueAsText, outputGDBFeatureClassName)
         tempDissolveFeatureClass = os.path.join(parameters[1].valueAsText, tempDissolveFeatureClassName)
         tempMergedFeatureClass = os.path.join(parameters[1].valueAsText, tempMergedFeatureClassName)
-        metadataTemplate = r''
         altFeatureClass = parameters[2].valueAsText
         affFeatureClass = parameters[3].valueAsText
         outSR = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]'
@@ -161,6 +170,7 @@ class UpdateUnitBounds(object):
             'UNIT_CODE = \'KLGO\'',
             'UNIT_CODE = \'LAKE\'',
             'UNIT_CODE = \'NPSA\'',
+            'UNIT_CODE = \'RIGR\'',
             'UNIT_CODE = \'VALR\'',
             'UNIT_CODE = \'WAPA\''
         ]
@@ -220,7 +230,7 @@ class UpdateUnitBounds(object):
         arcpy.Project_management(tempMergedFeatureClass, outputGDBFeatureClass, outSR); messages.addGPMessages()
         arcpy.RepairGeometry_management(outputGDBFeatureClass); messages.addGPMessages()
 
-        #arcpy.MetadataImporter_conversion(metadataTemplate ,outputGDBFeatureClass); messages.addGPMessages()
+        arcpy.MetadataImporter_conversion(os.path.join(parameters[4].valueAsText, metadataTemplate), outputGDBFeatureClass); messages.addGPMessages()
 
         itemsToDelete = [tempLayer, mergeLayer, altLayer, affLayer, tempDissolveFeatureClass, tempMergedFeatureClass]
         for item in itemsToDelete:

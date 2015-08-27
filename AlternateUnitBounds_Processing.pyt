@@ -46,7 +46,7 @@ class FindMissingBounds(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
         self.label = "Find Bounds Missing from Lands"
-        self.description = "Create or tbl_MissingFromLands table in UnitBounds.gdb"
+        self.description = "Create tbl_MissingFromLands table in UnitBounds.gdb"
         self.canRunInBackground = False
 
     def getParameterInfo(self):
@@ -74,7 +74,7 @@ class FindMissingBounds(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param2.value = "D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
+        param2.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\IMD_Bounds.gdb\IM_Parks_20150813" #"D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
 
         params = [param0, param1, param2]
         return params
@@ -124,7 +124,7 @@ class FindUpdatedIMDParks(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
         self.label = "Find Updated IMD Parks"
-        self.description = "Create or tbl_UpdatedIMDParks table in UnitBounds.gdb"
+        self.description = "Create tbl_UpdatedIMDParks table in UnitBounds.gdb"
         self.canRunInBackground = False
 
     def getParameterInfo(self):
@@ -152,7 +152,7 @@ class FindUpdatedIMDParks(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param2.value = "D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
+        param2.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\IMD_Bounds.gdb\IM_Parks_20150813" #"D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
 
         param3 = arcpy.Parameter(
             displayName = "Date to Check",

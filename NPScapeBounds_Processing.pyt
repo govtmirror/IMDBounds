@@ -82,9 +82,18 @@ class UpdateNPScapeBounds(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param3.value = "D:\Workspace\NPScape_Bounds.gdb\NPScape_Parks_20150824"
+        param3.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\NPScape_Bounds.gdb\NPScape_Parks_20150826" #"D:\Workspace\NPScape_Bounds.gdb\NPScape_Parks_20150824"
 
-        params = [param0, param1, param2, param3]
+        param4 = arcpy.Parameter(
+            displayName = "Folder Containing Metadata Templates",
+            name = "metaFolder",
+            datatype = "Folder",
+            parameterType = "Required",
+            direction = "Input"
+            )
+        param4.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Metadata_Templates"
+
+        params = [param0, param1, param2, param3, param4]
         return params
 
     def isLicensed(self):
@@ -122,6 +131,7 @@ class UpdateNPScapeBounds(object):
         message = ""
         today=datetime.now()
         datestamp = str(today.isoformat()).replace('-','')[0:8]
+        metadataTemplates = ["npscapebounds_albers_template.xml","npscapebounds_albers_template.xml", "npscapebounds_generic_template.xml"]
 
         arcpy.env.overwriteOutput = 1
         # Lands bounds have M and Z values for some reason; this is an extra check
@@ -239,8 +249,17 @@ class UpdateNPScapeBounds(object):
         arcpy.RepairGeometry_management(outputGDBFeatureClassCONUS)
 
         # Import metadata
-        #for fc in fcsToVersion:
-            #arcpy.MetadataImporter_conversion(metadataTemplate ,fc); messages.addGPMessages()
+        for fc in fcsToVersion:
+            if fc.endswith("_albers"):
+                arcpy.MetadataImporter_conversion(os.path.join(parameters[4].valueAsText, metadataTemplates[0]), fc); messages.addGPMessages()
+            elif fc.endswith("_webercator"):
+                arcpy.MetadataImporter_conversion(os.path.join(parameters[4].valueAsText, metadataTemplates[1]), fc); messages.addGPMessages()
+            else:
+                pass
+
+        fcsInDatasets = [outputGDBFeatureClassAlaska, outputGDBFeatureClassHawaii, outputGDBFeatureClassSaipan, outputGDBFeatureClassSamoa, outputGDBFeatureClassCONUS]
+        for fc in fcsInDatasets:
+            arcpy.MetadataImporter_conversion(os.path.join(parameters[4].valueAsText, metadataTemplates[2]), fc); messages.addGPMessages()
 
         itemsToDelete = [tempLayer, lookupTable, outputGDBFeatureClassTemp, outputGDBFeatureClassInitTemp]
         for item in itemsToDelete:

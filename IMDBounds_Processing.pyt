@@ -22,7 +22,7 @@
 #       Feature classes in each feature dataset with polygons specific to that extent.
 #
 #   Created by:  NPS Inventory and Monitoring Division GIS Staff
-#   Update date: 20150821
+#   Update date: 20150826
 #
 #
 #
@@ -74,9 +74,18 @@ class UpdateIMDBounds(object):
             parameterType = "Required",
             direction = "Input"
             )
-        param2.value = "D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
+        param2.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Data\IMD_Bounds.gdb\IM_Parks_20150813" #"D:\Workspace\IMD_Bounds.gdb\IM_Parks_20150813"
 
-        params = [param0, param1, param2]
+        param3 = arcpy.Parameter(
+            displayName = "Folder Containing Metadata Templates",
+            name = "metaFolder",
+            datatype = "Folder",
+            parameterType = "Required",
+            direction = "Input"
+            )
+        param3.value = "X:\ProjectData\Data_Processing\Bounds_Processing\Metadata_Templates"
+
+        params = [param0, param1, param2, param3]
         return params
 
     def isLicensed(self):
@@ -110,10 +119,22 @@ class UpdateIMDBounds(object):
         arcpy.RepairGeometry_management(outputFC)
         arcpy.AddMessage('\n Created '  + outputFC)
 
+    def updateNames(self, targetLayer, selectClause, targetFields):
+        tempNameLayer = "tempNameLayer"
+        arcpy.MakeFeatureLayer_management(targetLayer, tempNameLayer)
+        arcpy.SelectLayerByAttribute_management(tempNameLayer, "NEW_SELECTION", "UNIT_CODE = '"+ selectClause +"'")
+        for targetField in targetFields:
+            updatedValue = "!"  + targetField + "! + ' and Preserve'"
+            arcpy.CalculateField_management(tempNameLayer, targetField,  updatedValue, "PYTHON_9.3")
+        #arcpy.CalculateField_management(in_table="imd_unit_bounds_albers",field="UNIT_NAME",expression="!UNIT_NAME! + ' and Preserve'",expression_type="PYTHON_9.3",code_block="#")
+        arcpy.SelectLayerByAttribute_management(tempNameLayer, "CLEAR_SELECTION")
+        arcpy.AddMessage('\n Updated Names: ' + selectClause + ' for '  + targetLayer)
+
     def execute(self, parameters, messages):
         message = ""
         today=datetime.now()
         datestamp = str(today.isoformat()).replace('-','')[0:8]
+        metadataTemplates = ["imdbounds_albers_template.xml","imdbounds_albers_template.xml", "imdbounds_generic_template.xml"]
 
         arcpy.env.overwriteOutput = 1
         # Lands bounds have M and Z values for some reason; this is an extra check
@@ -122,11 +143,13 @@ class UpdateIMDBounds(object):
         arcpy.env.outputZFlag = "Disabled"
         outputInitTempFeatureClassName = "temp_unit_bounds_wgs0"
         outputTempFeatureClassName = "temp_unit_bounds_wgs"
+        outputTempDissolveFeatureClassName = "temp_dissolved_unit_bounds_wgs"
         outputGDBFeatureClassName = "imd_unit_bounds"
         tempLayer = "tempLayer"
         lookupTable = "lookupTable"
         outputGDBFeatureClassInitTemp = os.path.join(parameters[1].valueAsText, outputInitTempFeatureClassName)
         outputGDBFeatureClassTemp = os.path.join(parameters[1].valueAsText, outputTempFeatureClassName)
+        outputGDBFeatureClassTempDissolve = os.path.join(parameters[1].valueAsText, outputTempDissolveFeatureClassName)
         outputGDBFeatureClassAlbers = os.path.join(parameters[1].valueAsText, outputGDBFeatureClassName + "_albers")
         outputGDBFeatureClassWebMerc = os.path.join(parameters[1].valueAsText, outputGDBFeatureClassName + "_webmercator")
         outputGDBFeatureClassConvexHulls = os.path.join(parameters[1].valueAsText, outputGDBFeatureClassName + "_webmercator_convexhulls")
@@ -175,14 +198,25 @@ class UpdateIMDBounds(object):
         for unit in Conus_Select_Array:
             AllUnits.remove(unit)
 
+        UpdateNames_Array = ['ALAG','ANIA','DENA','GAAR','GLBA','KATM','LACL','WRST','GRSA']
+        #updatedNames = {'ANIA': 'Aniakchak National Monument and Preserve','DENA': 'Denali National Park and Preserve','GAAR': 'Gates of the Arctic National Park and Preserve','GLBA': 'Glacier Bay National Park and Preserve','KATM': 'Katmai National Park and Preserve','LACL': 'Lake Clark National Park and Preserve','WRST': 'Wrangell-St. Elias National Park','GRSA': 'Great Sand Dunes National Park and Preserve'}
+
         # Join lookup to unit_bounds_wgs and copy matching features to temp feature class
         arcpy.FeatureClassToFeatureClass_conversion(parameters[0].valueAsText, parameters[1].valueAsText, outputInitTempFeatureClassName); messages.addGPMessages()
         arcpy.MakeFeatureLayer_management(outputGDBFeatureClassInitTemp, tempLayer); messages.addGPMessages()
         arcpy.MakeTableView_management(parameters[2].valueAsText, lookupTable); messages.addGPMessages()
         arcpy.JoinField_management(tempLayer, "UNIT_CODE", lookupTable, "Unit_Code", ["Network_Code", "Lifecycle"]); messages.addGPMessages()
         arcpy.SelectLayerByAttribute_management(tempLayer, "NEW_SELECTION", "Network_Code IS NOT NULL"); messages.addGPMessages()
-        arcpy.CopyFeatures_management(tempLayer, outputGDBFeatureClassTemp); messages.addGPMessages()
+        arcpy.Dissolve_management(tempLayer, outputGDBFeatureClassTempDissolve, "UNIT_CODE"); messages.addGPMessages()
+        arcpy.RepairGeometry_management(outputGDBFeatureClassTempDissolve); messages.addGPMessages()
+        arcpy.JoinField_management(outputGDBFeatureClassTempDissolve, "UNIT_CODE", tempLayer, "UNIT_CODE", ["UNIT_NAME","DATE_EDIT", "Full_Name", "Feature_Source","Source_Metadata","Source_Details","Network_Code","Lifecycle"]); messages.addGPMessages()
+        arcpy.CopyFeatures_management(outputGDBFeatureClassTempDissolve, outputGDBFeatureClassTemp); messages.addGPMessages()
+        #arcpy.CopyFeatures_management(tempLayer, outputGDBFeatureClassTemp); messages.addGPMessages()
         arcpy.RepairGeometry_management(outputGDBFeatureClassTemp); messages.addGPMessages()
+
+        # Update names for logical (dissolved) parks
+        for unitCode in UpdateNames_Array:
+            UpdateIMDBounds.updateNames(self, outputGDBFeatureClassTemp, unitCode, ["UNIT_NAME", "Full_Name"])
 
         # Delete older versions
         fcsToDelete = [outputGDBFeatureClassName + '_albers' + '_2*',
@@ -230,10 +264,19 @@ class UpdateIMDBounds(object):
         arcpy.RepairGeometry_management(outputGDBFeatureClassCONUS)
 
         # Import metadata
-        #for fc in fcsToVersion:
-            #arcpy.MetadataImporter_conversion(metadataTemplate ,fc); messages.addGPMessages()
+        for fc in fcsToVersion:
+            if fc.endswith("_albers"):
+                arcpy.MetadataImporter_conversion(os.path.join(parameters[3].valueAsText, metadataTemplates[0]), fc); messages.addGPMessages()
+            elif fc.endswith("_webercator"):
+                arcpy.MetadataImporter_conversion(os.path.join(parameters[3].valueAsText, metadataTemplates[1]), fc); messages.addGPMessages()
+            else:
+                pass
 
-        itemsToDelete = [tempLayer, lookupTable, outputGDBFeatureClassTemp, outputGDBFeatureClassInitTemp]
+        fcsInDatasets = [outputGDBFeatureClassAlaska, outputGDBFeatureClassHawaii, outputGDBFeatureClassSaipan, outputGDBFeatureClassSamoa, outputGDBFeatureClassCONUS]
+        for fc in fcsInDatasets:
+            arcpy.MetadataImporter_conversion(os.path.join(parameters[3].valueAsText, metadataTemplates[2]), fc); messages.addGPMessages()
+
+        itemsToDelete = [tempLayer, lookupTable, outputGDBFeatureClassTemp, outputGDBFeatureClassInitTemp, outputGDBFeatureClassTempDissolve]
         for item in itemsToDelete:
             if arcpy.Exists(item):
                 arcpy.Delete_management(item); messages.addGPMessages()
